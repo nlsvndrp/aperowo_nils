@@ -27,7 +27,7 @@ To use this project, you need:
 1. Clone the repository:
    ```bash
    git clone https://github.com/oliomap/aperowo.git
-adfaf
+
 2. Navigate to the repository:
   ```bash
   cd aperowo
