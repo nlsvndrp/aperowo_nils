@@ -13,21 +13,3 @@
 
 ## Important Disclaimer
 This tool is for **informational purposes only**. Free food at events is strictly limited to individuals who are officially inscribed to these events. Please ensure that you meet the eligibility criteria before attending.
-
----
-
-## Getting Started
-
-### Prerequisites
-To use this project, you need:
-- Python (latest version recommended)
-- Jupyter Notebook
-
-### Installation
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/oliomap/aperowo.git
-
-2. Navigate to the repository:
-  ```bash
-  cd aperowo
