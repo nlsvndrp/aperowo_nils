@@ -3,7 +3,10 @@ import json
 from backend.amiv_api import fetch_all_events, extract_event_fields
 
 def extract_amiv():
-
+    """
+    Fetches events from the AMIV API, filters for 'apero' or 'food',
+    and saves the results to a JSON file.
+    """
     api = 'https://api.amiv.ethz.ch/events/'
 
     # Fetch all events from the AMIV API and filter them for "apero".
@@ -28,7 +31,7 @@ def extract_amiv():
     filtered_events_amiv = [extract_event_fields(event) for event in events_with_apero_amiv]
     
     # Write the filtered events to a JSON file.
-    with open("backend/apero_results_amiv.json", "w", encoding="utf-8") as outfile:
+    with open("data/apero_results_amiv.json", "w", encoding="utf-8") as outfile:
         json.dump(filtered_events_amiv, outfile, ensure_ascii=False, indent=2)
 
     print(f"Extracted information for {len(filtered_events_amiv)} AMIV events and saved to apero_results_amiv.json.")

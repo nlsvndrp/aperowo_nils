@@ -48,6 +48,11 @@ def fetch_all_events(base_url, filter_dict=None):
     
     while url:
         #print("Fetching:", url)  # Debug: print the URL of the current page.
+        
+        # Possibly useful to save the visited URLs to a file.
+        # with open("data/visited_urls.json", "w", encoding="utf-8") as outfile:
+        #     json.dump(url, outfile, ensure_ascii=False, indent=2)
+
         response = requests.get(url, timeout=10)
         response.raise_for_status()
         data = response.json()
