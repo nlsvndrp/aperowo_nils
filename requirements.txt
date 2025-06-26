@@ -1,0 +1,12 @@
+requests
+beautifulsoup4
+requests
+bs4
+hashlib
+os
+time
+urllib.parse
+re
+json
+unicodedata
+datetime
