@@ -85,10 +85,20 @@ const loadEventSources = async () => {
     const payload = await fetchJson(source);
     const list = Array.isArray(payload) ? payload : [payload];
 
-    list
-      .filter(Boolean)
-      .map((entry) => normaliseEntry(entry, source.id))
-      .forEach((event) => items.push(event));
+    let skipped = 0;
+    list.forEach((entry, idx) => {
+      if (!entry || !entry.date) {
+        skipped += 1;
+        return;
+      }
+      const event = normaliseEntry(entry, source.id);
+      items.push(event);
+    });
+
+    if (skipped > 0) {
+      // Surface a clear hint in devtools without interrupting the UI
+      console.warn(`Skipped ${skipped} invalid entries from ${source.id} (missing date).`);
+    }
   }
 
   return items;
