@@ -158,10 +158,6 @@ const buildCalendarMatrix = (year, month) => {
     }
 
     weeks.push(days);
-
-    if (dayCounter > daysInMonth && days.every((day) => day.date.getUTCMonth() !== month)) {
-      break;
-    }
   }
 
   return weeks;
@@ -170,6 +166,21 @@ const buildCalendarMatrix = (year, month) => {
 const showStatus = (type, message) => {
   const className = type === "error" ? "error-notice" : "loading-notice";
   calendarContainer.innerHTML = `<div class="${className}">${message}</div>`;
+};
+
+const changeMonth = (delta) => {
+  const ref = new Date(Date.UTC(state.year, state.month + delta, 1));
+  state.year = ref.getUTCFullYear();
+  state.month = ref.getUTCMonth();
+
+  const monthPrefix = `${state.year}-${String(state.month + 1).padStart(2, "0")}`;
+  const monthDays = Array.from(state.eventsByDay.keys())
+    .filter((d) => d.startsWith(monthPrefix))
+    .sort();
+
+  state.activeDay = monthDays[0] ?? null;
+  renderCalendar();
+  renderEventPanel();
 };
 
 const renderCalendar = () => {
@@ -183,13 +194,33 @@ const renderCalendar = () => {
   const heading = document.createElement("div");
   heading.className = "calendar__heading";
 
+  const controls = document.createElement("div");
+  controls.className = "calendar__controls";
+
+  const prevBtn = document.createElement("button");
+  prevBtn.type = "button";
+  prevBtn.className = "calendar__nav-btn";
+  prevBtn.setAttribute("aria-label", "Previous month");
+  prevBtn.textContent = "‹";
+  prevBtn.addEventListener("click", () => changeMonth(-1));
+
   const title = document.createElement("h2");
+  title.className = "calendar__title";
   title.textContent = `${MONTH_NAMES[month]} ${year}`;
+
+  const nextBtn = document.createElement("button");
+  nextBtn.type = "button";
+  nextBtn.className = "calendar__nav-btn";
+  nextBtn.setAttribute("aria-label", "Next month");
+  nextBtn.textContent = "›";
+  nextBtn.addEventListener("click", () => changeMonth(1));
+
+  controls.append(prevBtn, title, nextBtn);
 
   const meta = document.createElement("p");
   meta.textContent = `${events.length} event${events.length === 1 ? "" : "s"} loaded`;
 
-  heading.append(title, meta);
+  heading.append(controls, meta);
 
   const grid = document.createElement("div");
   grid.className = "calendar__grid";
