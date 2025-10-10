@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Aperowo Planner</title>
+    <link rel="stylesheet" href="/frontend/public/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <div class="app-card">
+        <header class="app-heading">
+          <h1>Aperowo Planner</h1>
+          <p>
+            Stay on top of aperos and treats. Events automatically populate from
+            <code>data/apero_results_amiv.json</code>.
+          </p>
+        </header>
+
+        <section id="calendar" class="calendar-wrapper" aria-live="polite">
+          <div class="loading-notice">Loading events…</div>
+        </section>
+
+        <section id="event-panel" class="event-panel event-panel--empty">
+          <div class="event-panel__placeholder">
+            <h2>Select a highlighted day</h2>
+            <p>Day details appear here so you can plan your visit.</p>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <script type="module" src="/frontend/public/app.js"></script>
+  </body>
+  </html>
+
