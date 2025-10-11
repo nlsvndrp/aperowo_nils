@@ -231,7 +231,8 @@ body {
 .calendar__grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  grid-template-rows: auto repeat(6, 1fr); /* header + six equal week rows */
+  grid-template-rows: auto; /* header row only; weeks are implicit */
+  grid-auto-rows: 1fr; /* all week rows share available height */
   gap: 0.55rem;
   background: rgba(226, 232, 240, 0.35);
   padding: 1rem;

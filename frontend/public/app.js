@@ -247,64 +247,86 @@ const renderCalendar = () => {
     grid.appendChild(label);
   });
 
-  const weeks = buildCalendarMatrix(year, month);
+  // Render days for the first and last weeks, filling with adjacent-month days,
+  // but avoid extra rows that contain only adjacent-month days.
+  const firstOfMonth = new Date(Date.UTC(year, month, 1));
+  const lastOfMonth = new Date(Date.UTC(year, month + 1, 0));
+  const startOffset = (firstOfMonth.getUTCDay() + 6) % 7; // Mon=0..Sun=6
+  const endOffset = 6 - ((lastOfMonth.getUTCDay() + 6) % 7);
 
-  weeks.forEach((week) => {
-    week.forEach(({ date, inMonth }) => {
-      const iso = toISODate(date);
-      const dayEvents = eventsByDay.get(iso) ?? [];
+  const startDate = new Date(Date.UTC(year, month, 1 - startOffset));
+  const endDate = new Date(Date.UTC(year, month, lastOfMonth.getUTCDate() + endOffset));
 
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "calendar__day";
-      button.dataset.day = iso;
+  for (let cur = new Date(startDate); cur <= endDate; cur.setUTCDate(cur.getUTCDate() + 1)) {
+    const iso = toISODate(cur);
+    const inMonth = cur.getUTCMonth() === month;
+    const dayEvents = eventsByDay.get(iso) ?? [];
 
-      if (!inMonth) {
-        button.classList.add("calendar__day--muted");
-      }
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "calendar__day";
+    button.dataset.day = iso;
 
-      if (dayEvents.length > 0) {
-        button.classList.add("calendar__day--highlight");
-      }
+    if (!inMonth) {
+      button.classList.add("calendar__day--muted");
+    }
 
-      if (activeDay === iso) {
-        button.classList.add("calendar__day--active");
-      }
+    if (dayEvents.length > 0) {
+      button.classList.add("calendar__day--highlight");
+    }
 
-      const dateLabel = document.createElement("span");
-      dateLabel.className = "calendar__date";
-      dateLabel.textContent = date.getUTCDate();
+    if (activeDay === iso) {
+      button.classList.add("calendar__day--active");
+    }
 
-      const eventsContainer = document.createElement("div");
-      eventsContainer.className = "calendar__events";
+    const dateLabel = document.createElement("span");
+    dateLabel.className = "calendar__date";
+    dateLabel.textContent = cur.getUTCDate();
 
-      dayEvents.slice(0, 3).forEach((event) => {
-        const chip = document.createElement("span");
-        chip.className = "calendar__event-chip";
-        chip.textContent = event.title;
-        eventsContainer.appendChild(chip);
-      });
+    const eventsContainer = document.createElement("div");
+    eventsContainer.className = "calendar__events";
 
-      if (dayEvents.length > 3) {
-        const more = document.createElement("span");
-        more.className = "calendar__more";
-        more.textContent = `+${dayEvents.length - 3}`;
-        eventsContainer.appendChild(more);
-      }
-
-      button.append(dateLabel, eventsContainer);
-
-      button.addEventListener("click", () => setActiveDay(iso));
-      button.addEventListener("keypress", (event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          setActiveDay(iso);
-        }
-      });
-
-      grid.appendChild(button);
+    dayEvents.slice(0, 3).forEach((event) => {
+      const chip = document.createElement("span");
+      chip.className = "calendar__event-chip";
+      chip.textContent = event.title;
+      eventsContainer.appendChild(chip);
     });
-  });
+
+    if (dayEvents.length > 3) {
+      const more = document.createElement("span");
+      more.className = "calendar__more";
+      more.textContent = `+${dayEvents.length - 3}`;
+      eventsContainer.appendChild(more);
+    }
+
+    button.append(dateLabel, eventsContainer);
+
+    // Avoid closing over the mutable `cur` Date; capture needed values now
+    const inMonthCaptured = inMonth;
+    const dayMonth = cur.getUTCMonth();
+    const dayYear = cur.getUTCFullYear();
+
+    const gotoIfAdjacent = () => {
+      if (!inMonthCaptured) {
+        const currentAbs = state.year * 12 + state.month;
+        const targetAbs = dayYear * 12 + dayMonth;
+        const delta = targetAbs - currentAbs;
+        changeMonth(delta);
+      }
+      setActiveDay(iso);
+    };
+
+    button.addEventListener("click", gotoIfAdjacent);
+    button.addEventListener("keypress", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        gotoIfAdjacent();
+      }
+    });
+
+    grid.appendChild(button);
+  }
 
   calendar.append(heading, grid);
   calendarContainer.appendChild(calendar);
