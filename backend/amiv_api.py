@@ -251,13 +251,6 @@ def infer_refreshments(event, rules=REFRESHMENT_RULES):
     Analyse the textual fields of a raw AMIV event payload and estimate what
     food or drinks will be offered.
 
-    The AMIV API does not provide a dedicated property for catering details.
-    The best proxy is to inspect the various descriptive fields (English and
-    German titles, catchphrases and descriptions) and look for keywords that
-    indicate what is being served.  The heuristics implemented here are kept
-    intentionally transparent and data-driven so that they can be refined or
-    replaced once richer metadata becomes available.
-
     Parameters
     ----------
     event : dict
@@ -342,12 +335,7 @@ def _build_refreshment_corpus(event):
 def _keyword_in_text(keyword, text):
     """
     Determine whether ``keyword`` appears in ``text`` after normalisation.
-
-    Instead of relying solely on regular expressions we perform a simple string
-    membership test.  This keeps the function fast while still allowing matches
-    such as ``bierdegustation`` for the ``bier`` keyword.  For compound keywords
-    containing whitespace (for instance ``finger food``) we ensure that the
-    normalised keyword is also normalised to single spaces for accurate matches.
+    Both inputs are assumed to be non-empty strings.
     """
     keyword_norm = re.sub(r"\s+", " ", normalize_text(keyword.lower()))
     return keyword_norm in text if keyword_norm else False
@@ -356,11 +344,8 @@ def _keyword_in_text(keyword, text):
 def _format_refreshment_summary(categories, matches, rules):
     """
     Build a human readable summary string from the matched categories.
-
-    Example output: ``\"Food (pizza, grill) · Drinks (beer)\"``.
-    Only the first three matched keywords per category are listed to keep the
-    output concise in the UI, yet the full list remains available in
-    ``refreshment_details['matches']`` for debugging or future features.
+    The summary consists of the category labels (from ``rules``) and up to
+    three keywords that triggered each category.
     """
     parts = []
     for category in categories:

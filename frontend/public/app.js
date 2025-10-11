@@ -1,3 +1,5 @@
+// Data sources to load event information from.
+// Each source is a JSON file (array or single object) pulled via fetch.
 const sources = [
   {
     id: "amiv-apero",
@@ -6,8 +8,10 @@ const sources = [
   },
 ];
 
-const DEFAULT_EASE_OF_ENTRY = 0.6;
+// Fallback for events that do not specify an ease-of-entry score.
+const DEFAULT_EASE_OF_ENTRY = 0.69;
 
+// Human-readable month names for UI labels.
 const MONTH_NAMES = [
   "January",
   "February",
@@ -23,8 +27,10 @@ const MONTH_NAMES = [
   "December",
 ];
 
+// Weekday labels, Monday-first, to match the calendar grid ordering.
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
+// Main containers and optional mobile modal elements.
 const calendarContainer = document.getElementById("calendar");
 const eventPanel = document.getElementById("event-panel");
 const mobileModal = document.getElementById("mobile-event-modal");
@@ -38,15 +44,21 @@ if (mobileModal) {
 }
 
 const state = {
+  // Flat list of all events loaded from the configured sources
   events: [],
+  // Map keyed by ISO date (YYYY-MM-DD) to an array of events occurring on that day
   eventsByDay: new Map(),
+  // Currently visible calendar month/year
   month: new Date().getMonth(),
   year: new Date().getFullYear(),
+  // Currently selected day (ISO string) whose details are shown in the panel
   activeDay: null,
 };
 
+// Turn a Date into a "YYYY-MM-DD" string in UTC.
 const toISODate = (date) => date.toISOString().slice(0, 10);
 
+// Format an ISO date string into a friendly full date for headings.
 const formatDisplayDate = (isoString) =>
   new Date(`${isoString}T00:00:00`).toLocaleDateString(undefined, {
     weekday: "long",
@@ -55,6 +67,7 @@ const formatDisplayDate = (isoString) =>
     year: "numeric",
   });
 
+// Compact human-readable time range shown on event cards.
 const formatEventTime = (event) => {
   if (event.startTime && event.endTime) {
     return `${event.startTime} — ${event.endTime}`;
@@ -62,6 +75,7 @@ const formatEventTime = (event) => {
   return event.startTime || event.endTime || null;
 };
 
+// Convert a 0..1 ease score into a qualitative label.
 const describeEaseOfEntry = (value) => {
   if (value <= 0.33) {
     return "Challenging";
@@ -72,6 +86,9 @@ const describeEaseOfEntry = (value) => {
   return "Easy";
 };
 
+// Normalize entries from arbitrary sources into a consistent internal event shape.
+// - Ensures an id, title, date, optional times, and other metadata are present.
+// - Provides sensible defaults when fields are missing.
 const normaliseEntry = (entry, sourceId) => {
   if (!entry?.date) {
     throw new Error(`Missing date in ${sourceId} entry: ${JSON.stringify(entry)}`);
@@ -93,6 +110,7 @@ const normaliseEntry = (entry, sourceId) => {
   };
 };
 
+// Fetch and parse JSON from a configured source, with error surfacing.
 const fetchJson = async (source) => {
   const response = await fetch(source.path);
   if (!response.ok) {
@@ -102,6 +120,8 @@ const fetchJson = async (source) => {
   return response.json();
 };
 
+// Load events from all sources, normalize them, and merge into a single list.
+// Invalid entries (e.g., without a date) are skipped with a console warning.
 const loadEventSources = async () => {
   const items = [];
 
@@ -128,6 +148,8 @@ const loadEventSources = async () => {
   return items;
 };
 
+// Build a lookup from ISO date to a sorted list of events for that date.
+// Sorting prefers events with start times, then alphabetical by title.
 const createEventLookup = (events) => {
   const map = new Map();
 
@@ -163,6 +185,8 @@ const createEventLookup = (events) => {
   return map;
 };
 
+// Helper to produce a 6x7 calendar matrix for a given month/year.
+// Note: not used by the current renderer, which builds the grid inline.
 const buildCalendarMatrix = (year, month) => {
   const firstDay = new Date(Date.UTC(year, month, 1));
   const startOffset = (firstDay.getUTCDay() + 6) % 7;
@@ -187,11 +211,13 @@ const buildCalendarMatrix = (year, month) => {
   return weeks;
 };
 
+// Show a simple centered notice in the calendar area (loading/error).
 const showStatus = (type, message) => {
   const className = type === "error" ? "error-notice" : "loading-notice";
   calendarContainer.innerHTML = `<div class="${className}">${message}</div>`;
 };
 
+// Move the visible calendar by a number of months and update the active day.
 const changeMonth = (delta) => {
   const ref = new Date(Date.UTC(state.year, state.month + delta, 1));
   state.year = ref.getUTCFullYear();
@@ -207,6 +233,7 @@ const changeMonth = (delta) => {
   renderEventPanel();
 };
 
+// Render the month grid and day cells, including navigation and highlights.
 const renderCalendar = () => {
   const { year, month, eventsByDay, activeDay, events } = state;
 
@@ -359,6 +386,7 @@ const renderCalendar = () => {
   calendarContainer.appendChild(calendar);
 };
 
+// Render the right-hand event panel (or placeholder) for the active day.
 const renderEventPanel = () => {
   const { activeDay, eventsByDay } = state;
 
@@ -514,6 +542,7 @@ const renderEventPanel = () => {
   eventPanel.append(header, list);
 };
 
+// Set the selected day, re-render views, and open modal on tiny screens.
 const setActiveDay = (isoString) => {
   state.activeDay = isoString;
   renderCalendar();
@@ -525,6 +554,7 @@ const setActiveDay = (isoString) => {
   }
 };
 
+// App bootstrap: load events, choose a sensible default day, and render.
 const initialise = async () => {
   try {
     showStatus("loading", "Loading events…");
@@ -557,8 +587,10 @@ const initialise = async () => {
 };
 
 // Utilities and handlers for ultra-small screen modal
+// Detects if the current viewport is extremely small; used to switch to a modal UI.
 const isUltraSmallScreen = () => window.matchMedia("(max-width: 420px)").matches;
 
+// Show the mobile modal with the same content as the fixed panel.
 const openMobileEventModal = (isoString) => {
   if (!mobileModal || !mobileModalContent) return;
   // Set title
@@ -569,6 +601,7 @@ const openMobileEventModal = (isoString) => {
   document.body.classList.add("modal-open");
 };
 
+// Hide the mobile modal and restore body scroll.
 const closeMobileEventModal = () => {
   if (!mobileModal) return;
   mobileModal.setAttribute("hidden", "");
@@ -598,6 +631,8 @@ window.matchMedia("(max-width: 420px)").addEventListener("change", (ev) => {
 // Gate app behind disclaimer acceptance (no persistence)
 let appStarted = false;
 
+// Present a disclaimer modal on first load; start the app after acceptance.
+// If the modal is missing in the DOM, the app starts immediately.
 const startWithDisclaimerGate = () => {
   const modal = document.getElementById("disclaimer-modal");
   const acceptBtn = document.getElementById("disclaimer-accept");
