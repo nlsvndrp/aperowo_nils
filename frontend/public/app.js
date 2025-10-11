@@ -32,6 +32,11 @@ const mobileModalTitle = mobileModal?.querySelector("#mobile-event-title");
 const mobileModalContent = mobileModal?.querySelector(".mobile-modal__content");
 const mobileModalClose = mobileModal?.querySelector(".mobile-modal__close");
 
+// If modal markup exists, mark the body so CSS can safely hide the fixed panel on ultra-small screens.
+if (mobileModal) {
+  document.body.classList.add("has-mobile-modal");
+}
+
 const state = {
   events: [],
   eventsByDay: new Map(),

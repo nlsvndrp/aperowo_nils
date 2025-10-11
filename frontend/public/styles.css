@@ -682,8 +682,8 @@ body.modal-open {
     font-size: 0.8rem;        /* improve readability in tight space */
   }
 
-  /* Hide the fixed event panel on ultra-small screens; use modal instead */
-  .event-panel {
+  /* Hide the fixed panel only if modal exists */
+  body.has-mobile-modal .event-panel {
     display: none !important;
   }
 }

@@ -28,6 +28,18 @@
         </div>
       </div>
     </div>
+    
+    <!-- Mobile Event Details Modal (ultra-small screens only) -->
+    <div id="mobile-event-modal" class="mobile-modal" role="dialog" aria-modal="true" aria-labelledby="mobile-event-title" hidden>
+      <div class="mobile-modal__backdrop" data-close="true"></div>
+      <div class="mobile-modal__sheet" role="document">
+        <header class="mobile-modal__header">
+          <h2 id="mobile-event-title"></h2>
+          <button type="button" class="mobile-modal__close" aria-label="Close">×</button>
+        </header>
+        <div class="mobile-modal__content"></div>
+      </div>
+    </div>
     <div class="app-shell">
       <div class="app-card">
         <header class="app-heading">
