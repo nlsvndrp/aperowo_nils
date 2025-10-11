@@ -7,6 +7,135 @@ import requests
 import urllib.parse
 import json
 import unicodedata
+import re
+
+# ---------------------------------------------------------------------------
+# Heuristic configuration for extracting refreshment information.
+# ---------------------------------------------------------------------------
+# The AMIV event payloads do not expose a dedicated field for what is served
+# at an event.  We therefore rely on keyword searches inside the text fields
+# provided by the API.  Each category contains a short display label that will
+# eventually be surfaced in the UI and a set of keywords that are matched on a
+# normalised, accent-stripped, lower-case string.
+REFRESHMENT_RULES = {
+    "drinks": {
+        "label": "Drinks",
+        "keywords": {
+            "beer",
+            "bier",
+            "wine",
+            "wein",
+            "cocktail",
+            "cocktails",
+            "spritz",
+            "hugos",
+            "hugo",
+            "mulled wine",
+            "gluhwein",
+            "gluehwein",
+            "sangria",
+            "gin",
+            "tonic",
+            "punch",
+            "prosecco",
+            "champagne",
+            "bar",
+            "apero",
+            "aperitivo",
+            "drink",
+            "shots",
+            "longdrink",
+        },
+    },
+    "food": {
+        "label": "Food",
+        "keywords": {
+            "pizza",
+            "pizzas",
+            "burger",
+            "burgers",
+            "barbecue",
+            "bbq",
+            "grill",
+            "bratwurst",
+            "wuerstli",
+            "wurst",
+            "raclette",
+            "fondue",
+            "tapas",
+            "buffet",
+            "buffetts",
+            "dinner",
+            "meal",
+            "meals",
+            "supper",
+            "lunch",
+            "mittagessen",
+            "abendessen",
+            "food",
+            "essen",
+        },
+    },
+    "snacks": {
+        "label": "Snacks",
+        "keywords": {
+            "snack",
+            "snacks",
+            "bites",
+            "chips",
+            "nuts",
+            "fingerfood",
+            "finger food",
+            "canape",
+            "canapes",
+            "sandwich",
+            "sandwiches",
+            "apero riche",
+        },
+    },
+    "sweet": {
+        "label": "Dessert",
+        "keywords": {
+            "cake",
+            "cakes",
+            "brownie",
+            "brownies",
+            "cupcake",
+            "cupcakes",
+            "dessert",
+            "desserts",
+            "cookies",
+            "cookie",
+            "chocolate",
+            "sweets",
+            "waffle",
+            "waffles",
+            "crepe",
+            "crepes",
+            "ice cream",
+            "gelato",
+            "donut",
+            "donuts",
+        },
+    },
+    "coffee": {
+        "label": "Coffee & Tea",
+        "keywords": {
+            "coffee",
+            "kaffee",
+            "espresso",
+            "latte",
+            "cappuccino",
+            "tea",
+            "tee",
+            "chai",
+        },
+    },
+}
+
+# Define the order in which categories should be displayed when multiple
+# matches are found.  The idea is to list the most substantial offering first.
+REFRESHMENT_DISPLAY_PRIORITY = ["food", "drinks", "snacks", "sweet", "coffee"]
 
 # Normalize text by removing diacritical marks (accents).
 def normalize_text(text):
@@ -87,6 +216,7 @@ def extract_event_fields(event):
     - Date (from time_start, in YYYY-MM-DD format)
     - Start and end times (only hh:mm)
     - Location
+    - Inferred refreshments (based on keyword matches in text fields)
     """
     # Extract the URL assuming it is found in the '_links' section.
     url = event.get("_links", {}).get("self", {}).get("href", "")
@@ -102,6 +232,7 @@ def extract_event_fields(event):
     end_time = time_end[11:16] if time_end and len(time_end) >= 16 else ""
     # Get the location (if available)
     location = event.get("location", "")
+    refreshments = infer_refreshments(event)
     
     return {
         "url": url,
@@ -109,5 +240,135 @@ def extract_event_fields(event):
         "date": date,
         "start_time": start_time,
         "end_time": end_time,
-        "location": location
+        "location": location,
+        "refreshments": refreshments.get("summary"),
+        "refreshment_details": refreshments,
     }
+
+
+def infer_refreshments(event, rules=REFRESHMENT_RULES):
+    """
+    Analyse the textual fields of a raw AMIV event payload and estimate what
+    food or drinks will be offered.
+
+    The AMIV API does not provide a dedicated property for catering details.
+    The best proxy is to inspect the various descriptive fields (English and
+    German titles, catchphrases and descriptions) and look for keywords that
+    indicate what is being served.  The heuristics implemented here are kept
+    intentionally transparent and data-driven so that they can be refined or
+    replaced once richer metadata becomes available.
+
+    Parameters
+    ----------
+    event : dict
+        Raw event payload as returned by the AMIV API.
+    rules : dict, optional
+        Mapping from category identifiers to dictionaries that contain a human
+        readable ``label`` and a set of ``keywords`` (in lower-case) that signal
+        the presence of the respective category.  The default is
+        ``REFRESHMENT_RULES`` defined at module level so that tests can inject
+        alternative configurations where needed.
+
+    Returns
+    -------
+    dict
+        Always returns a serialisable dictionary with the following keys:
+        ``categories`` (``list[str]``) containing the matched category ids in
+        display order, ``matches`` (``dict[str, list[str]]``) with the concrete
+        keywords that triggered each category, and ``summary`` (``str`` or
+        ``None``) providing a ready-to-display sentence fragment for the UI.
+        If no clue is found, ``categories`` and ``matches`` are empty and
+        ``summary`` is ``None`` so the caller can skip rendering the section.
+    """
+
+    # Combine the relevant text fields into a single search string.
+    corpus = _build_refreshment_corpus(event)
+    if not corpus:
+        return {"categories": [], "matches": {}, "summary": None}
+
+    matches = {}
+    for category, config in rules.items():
+        keywords = config.get("keywords", set())
+        # Normalise multi-word keywords so "finger food" is matched properly.
+        category_hits = sorted({
+            keyword
+            for keyword in keywords
+            if keyword and _keyword_in_text(keyword, corpus)
+        })
+        if category_hits:
+            matches[category] = category_hits
+
+    if not matches:
+        return {"categories": [], "matches": {}, "summary": None}
+
+    categories = [
+        cat for cat in REFRESHMENT_DISPLAY_PRIORITY if cat in matches
+    ] + [cat for cat in matches if cat not in REFRESHMENT_DISPLAY_PRIORITY]
+
+    summary = _format_refreshment_summary(categories, matches, rules)
+
+    return {
+        "categories": categories,
+        "matches": matches,
+        "summary": summary,
+    }
+
+
+def _build_refreshment_corpus(event):
+    """
+    Return a single normalised lower-case string with the key text fragments.
+
+    The function concatenates title, catchphrase and description in both
+    English and German, strips accents to make keyword matching more robust and
+    collapses whitespace so that multi-word keywords remain searchable.
+    """
+    fields = [
+        event.get("title_en", ""),
+        event.get("catchphrase_en", ""),
+        event.get("description_en", ""),
+        event.get("title_de", ""),
+        event.get("catchphrase_de", ""),
+        event.get("description_de", ""),
+    ]
+    combined = " ".join(filter(None, fields)).strip()
+    if not combined:
+        return ""
+    normalised = normalize_text(combined.lower())
+    # Replace consecutive whitespace characters with a single space which makes
+    # matching multi-word phrases (e.g. "finger food") more predictable.
+    return re.sub(r"\s+", " ", normalised)
+
+
+def _keyword_in_text(keyword, text):
+    """
+    Determine whether ``keyword`` appears in ``text`` after normalisation.
+
+    Instead of relying solely on regular expressions we perform a simple string
+    membership test.  This keeps the function fast while still allowing matches
+    such as ``bierdegustation`` for the ``bier`` keyword.  For compound keywords
+    containing whitespace (for instance ``finger food``) we ensure that the
+    normalised keyword is also normalised to single spaces for accurate matches.
+    """
+    keyword_norm = re.sub(r"\s+", " ", normalize_text(keyword.lower()))
+    return keyword_norm in text if keyword_norm else False
+
+
+def _format_refreshment_summary(categories, matches, rules):
+    """
+    Build a human readable summary string from the matched categories.
+
+    Example output: ``\"Food (pizza, grill) · Drinks (beer)\"``.
+    Only the first three matched keywords per category are listed to keep the
+    output concise in the UI, yet the full list remains available in
+    ``refreshment_details['matches']`` for debugging or future features.
+    """
+    parts = []
+    for category in categories:
+        label = rules.get(category, {}).get("label", category.title())
+        keywords = matches.get(category, [])
+        if not keywords:
+            parts.append(label)
+            continue
+        snippet = ", ".join(keywords[:3])
+        parts.append(f"{label} ({snippet})")
+    return " · ".join(parts)
