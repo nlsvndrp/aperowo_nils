@@ -284,13 +284,31 @@ const renderCalendar = () => {
       button.classList.add("calendar__day--highlight");
     }
 
+    // Mark today for a gentle visual emphasis
+    const todayIso = toISODate(new Date());
+    if (iso === todayIso) {
+      button.classList.add("calendar__day--today");
+      button.setAttribute("aria-current", "date");
+    }
+
     if (activeDay === iso) {
       button.classList.add("calendar__day--active");
     }
 
+    // Date row: show weekday inline on ultra-small screens
+    const datebar = document.createElement("div");
+    datebar.className = "calendar__datebar";
+
+    const weekdayInline = document.createElement("span");
+    weekdayInline.className = "calendar__weekday-inline";
+    const weekdayIndex = (cur.getUTCDay() + 6) % 7; // Mon=0..Sun=6
+    weekdayInline.textContent = WEEKDAYS[weekdayIndex];
+
     const dateLabel = document.createElement("span");
     dateLabel.className = "calendar__date";
     dateLabel.textContent = cur.getUTCDate();
+
+    datebar.append(weekdayInline, dateLabel);
 
     const eventsContainer = document.createElement("div");
     eventsContainer.className = "calendar__events";
@@ -309,7 +327,7 @@ const renderCalendar = () => {
       eventsContainer.appendChild(more);
     }
 
-    button.append(dateLabel, eventsContainer);
+    button.append(datebar, eventsContainer);
 
     // Avoid closing over the mutable `cur` Date; capture needed values now
     const inMonthCaptured = inMonth;

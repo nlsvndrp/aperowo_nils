@@ -372,10 +372,38 @@ body.modal-open {
   border-color: rgba(59, 130, 246, 0.35);
 }
 
+/* Gentle emphasis for today */
+.calendar__day--today {
+  box-shadow: inset 0 0 0 2px rgba(16, 185, 129, 0.18), 0 10px 20px rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.35);
+  background: linear-gradient(180deg, rgba(16, 185, 129, 0.06), rgba(255, 255, 255, 0.85));
+}
+
+.calendar__day--today .calendar__date {
+  color: #065f46;
+}
+
 .calendar__date {
   font-size: 1.1rem;
   font-weight: 600;
   color: #0f172a;
+}
+
+/* Date row container and inline weekday (hidden by default) */
+.calendar__datebar {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  width: 100%;
+}
+
+.calendar__weekday-inline {
+  display: none; /* only show on very small screens */
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #64748b;
 }
 
 .calendar__events {
@@ -680,6 +708,11 @@ body.modal-open {
 
   .calendar__event-chip {
     font-size: 0.8rem;        /* improve readability in tight space */
+  }
+
+  /* Show weekday inside each day on ultra-small screens */
+  .calendar__weekday-inline {
+    display: inline-block;
   }
 
   /* Hide the fixed panel only if modal exists */
