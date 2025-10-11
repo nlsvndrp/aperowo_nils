@@ -491,15 +491,47 @@ body {
 }
 
 @media (max-width: 768px) {
+  /* Turn layout into a natural, scrollable page */
+  html,
+  body {
+    height: auto;
+  }
+
+  body {
+    overflow-y: auto; /* allow page scroll on mobile */
+  }
+
+  .app-shell {
+    height: auto;
+    min-height: 100vh; /* still cover the viewport */
+  }
+
   .app-card {
     grid-template-columns: 1fr; /* stack on small screens */
-    height: 100vh;
-    width: 100vw;
+    grid-template-rows: auto; /* rows grow naturally */
+    height: auto; /* remove fixed viewport height */
+    width: 100%; /* avoid 100vw horizontal overflow with scrollbars */
     padding: 0.75rem;
     gap: 0.75rem;
   }
 
+  .app-heading {
+    display: block; /* show heading on small screens */
+    margin: 0 0 0.25rem 0;
+  }
+
+  .calendar-wrapper {
+    height: auto; /* let content size naturally */
+    overflow: visible; /* use page scroll instead */
+  }
+
+  .calendar {
+    grid-template-rows: auto auto; /* heading + grid sized by content */
+    height: auto;
+  }
+
   .calendar__grid {
+    height: auto; /* grid grows; no internal scroll container */
     gap: 0.4rem;
     padding: 0.75rem;
   }
@@ -507,5 +539,16 @@ body {
   .calendar__day {
     min-height: 0; /* still let grid define height */
     padding: 0.5rem;
+  }
+
+  .event-panel {
+    height: auto; /* grow with content */
+    overflow: visible; /* use page scroll */
+  }
+
+  .event-panel__list {
+    flex: 0 0 auto; /* don't try to fill remaining height */
+    max-height: none;
+    overflow: visible; /* content contributes to page height */
   }
 }
