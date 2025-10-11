@@ -502,8 +502,8 @@ const initialise = async () => {
   }
 };
 
-// Gate app behind disclaimer acceptance
-const DISCLAIMER_KEY = "aperoDisclaimerAccepted";
+// Gate app behind disclaimer acceptance (no persistence)
+let appStarted = false;
 
 const startWithDisclaimerGate = () => {
   const modal = document.getElementById("disclaimer-modal");
@@ -511,28 +511,37 @@ const startWithDisclaimerGate = () => {
 
   // If modal elements are missing, fallback to starting the app.
   if (!modal || !acceptBtn) {
-    initialise();
-    return;
-  }
-
-  const accepted = localStorage.getItem(DISCLAIMER_KEY) === "1";
-  if (accepted) {
-    modal.setAttribute("hidden", "");
-    initialise();
-    return;
-  }
-
-  // Show modal and wait for acceptance
-  modal.removeAttribute("hidden");
-  acceptBtn.addEventListener(
-    "click",
-    () => {
-      localStorage.setItem(DISCLAIMER_KEY, "1");
-      modal.setAttribute("hidden", "");
+    if (!appStarted) {
+      appStarted = true;
       initialise();
-    },
-    { once: true }
-  );
+    }
+    return;
+  }
+
+  const showModalAndAwaitAcceptance = () => {
+    // Always show modal on entry
+    modal.removeAttribute("hidden");
+    acceptBtn.addEventListener(
+      "click",
+      () => {
+        modal.setAttribute("hidden", "");
+        if (!appStarted) {
+          appStarted = true;
+          initialise();
+        }
+      },
+      { once: true }
+    );
+  };
+
+  showModalAndAwaitAcceptance();
+
+  // If the page is restored from the BFCache, re-show disclaimer
+  window.addEventListener("pageshow", (e) => {
+    if (e.persisted) {
+      showModalAndAwaitAcceptance();
+    }
+  });
 };
 
 // Module script is loaded after DOM; safe to run directly
