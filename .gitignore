@@ -111,12 +111,18 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-data/
+
+# Keep backend ignored for GitHub Pages (static hosting)
 backend/
-*.json
-!frontend/package.json
-!frontend/package-lock.json
-node_modules/
-frontend/node_modules/
+
+# We need the data JSON files to be published so the frontend can fetch them.
+# Do NOT ignore the data directory or its JSON files.
+!data/
+!data/*.json
+
+# Generic JSON ignore is too broad for this project, so remove it.
+# If you need to ignore specific JSON elsewhere, add targeted patterns.
+
+# Node dependencies (duplicated entries cleaned up)
 node_modules/
 frontend/node_modules/
