@@ -552,3 +552,56 @@ body {
     overflow: visible; /* content contributes to page height */
   }
 }
+
+/* Ultra-small screens: agenda-like list view */
+@media (max-width: 420px) {
+  .calendar__heading {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .calendar__heading h2 {
+    font-size: 1.25rem; /* slightly smaller title */
+  }
+
+  .calendar__controls {
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .calendar__nav-btn {
+    width: 40px;
+    height: 40px; /* larger tap target */
+  }
+
+  .calendar__grid {
+    display: flex;            /* turn grid into a vertical list */
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.5rem;          /* tighter padding */
+  }
+
+  .calendar__weekday {
+    display: none;            /* hide header row labels */
+  }
+
+  .calendar__day {
+    padding: 0.75rem;         /* larger tap area per day */
+    transform: none;          /* avoid jumpy hover transforms on touch */
+  }
+
+  .calendar__day:hover,
+  .calendar__day:focus-visible,
+  .calendar__day--active {
+    transform: none;          /* keep highlight via border/shadow only */
+  }
+
+  .calendar__date {
+    font-size: 1.2rem;
+  }
+
+  .calendar__event-chip {
+    font-size: 0.8rem;        /* improve readability in tight space */
+  }
+}
