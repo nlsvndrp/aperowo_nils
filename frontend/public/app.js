@@ -6,6 +6,8 @@ const sources = [
   },
 ];
 
+const DEFAULT_EASE_OF_ENTRY = 0.6;
+
 const MONTH_NAMES = [
   "January",
   "February",
@@ -51,6 +53,16 @@ const formatEventTime = (event) => {
   return event.startTime || event.endTime || null;
 };
 
+const describeEaseOfEntry = (value) => {
+  if (value <= 0.33) {
+    return "Challenging";
+  }
+  if (value <= 0.66) {
+    return "Moderate";
+  }
+  return "Easy";
+};
+
 const normaliseEntry = (entry, sourceId) => {
   if (!entry?.date) {
     throw new Error(`Missing date in ${sourceId} entry: ${JSON.stringify(entry)}`);
@@ -66,6 +78,9 @@ const normaliseEntry = (entry, sourceId) => {
     url: entry.url ?? null,
     source: sourceId,
     raw: entry,
+    refreshments: entry.refreshments ?? entry.refreshment ?? null,
+    refreshmentDetails: entry.refreshment_details ?? entry.refreshmentDetails ?? null,
+    easeOfEntry: typeof entry.easeOfEntry === "number" ? entry.easeOfEntry : DEFAULT_EASE_OF_ENTRY,
   };
 };
 
@@ -384,6 +399,54 @@ const renderEventPanel = () => {
       spacer.textContent = "Details coming soon";
       card.appendChild(spacer);
     }
+
+    const insights = document.createElement("div");
+    insights.className = "event-card__insights";
+
+    if (event.refreshments) {
+      const refreshmentRow = document.createElement("div");
+      refreshmentRow.className = "event-card__insight";
+
+      const refreshmentLabel = document.createElement("span");
+      refreshmentLabel.className = "event-card__insight-label";
+      refreshmentLabel.textContent = "Offerings";
+
+      const refreshmentValue = document.createElement("span");
+      refreshmentValue.className = "event-card__insight-value";
+      refreshmentValue.textContent = event.refreshments;
+
+      refreshmentRow.append(refreshmentLabel, refreshmentValue);
+      insights.appendChild(refreshmentRow);
+    }
+
+    const easeRow = document.createElement("div");
+    easeRow.className = "event-card__insight event-card__insight--meter";
+
+    const easeLabel = document.createElement("span");
+    easeLabel.className = "event-card__insight-label";
+    easeLabel.textContent = "Ease of entry";
+
+    const easeValue = document.createElement("span");
+    easeValue.className = "event-card__insight-value";
+    const easeScoreRaw = Number.isFinite(event.easeOfEntry) ? event.easeOfEntry : DEFAULT_EASE_OF_ENTRY;
+    const easeScore = Math.min(Math.max(easeScoreRaw, 0), 1);
+    easeValue.textContent = describeEaseOfEntry(easeScore);
+
+    const meter = document.createElement("div");
+    meter.className = "ease-meter";
+    meter.setAttribute("role", "img");
+    meter.setAttribute("aria-label", `Ease of entry indicator: ${Math.round(easeScore * 100)} percent towards easy.`);
+
+    const marker = document.createElement("span");
+    marker.className = "ease-meter__marker";
+    const markerPosition = easeScore * 100;
+    marker.style.left = `${markerPosition}%`;
+
+    meter.appendChild(marker);
+    easeRow.append(easeLabel, meter, easeValue);
+    insights.appendChild(easeRow);
+
+    card.appendChild(insights);
 
     if (url) {
       const link = document.createElement("a");

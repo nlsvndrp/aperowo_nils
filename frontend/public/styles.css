@@ -349,6 +349,63 @@ body {
   color: #475569;
 }
 
+.event-card__insights {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding-top: 0.4rem;
+  border-top: 1px dashed rgba(148, 163, 184, 0.35);
+  margin-top: 0.2rem;
+}
+
+.event-card__insight {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.event-card__insight-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #475569;
+}
+
+.event-card__insight-value {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #0f172a;
+}
+
+.event-card__insight--meter {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ease-meter {
+  position: relative;
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #ef4444 0%, #f59e0b 50%, #22c55e 100%);
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08);
+}
+
+.ease-meter__marker {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #0f172a;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.25);
+}
+
 .event-card__link {
   align-self: flex-start;
   font-size: 0.85rem;
