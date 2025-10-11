@@ -7,6 +7,27 @@
     <link rel="stylesheet" href="/frontend/public/styles.css" />
   </head>
   <body>
+    <!-- Disclaimer Modal (shown until accepted) -->
+    <div id="disclaimer-modal" class="disclaimer-overlay" role="dialog" aria-labelledby="disclaimer-title" aria-modal="true" hidden>
+      <div class="disclaimer-card">
+        <header class="disclaimer-card__header">
+          <h2 id="disclaimer-title">Important Disclaimer</h2>
+        </header>
+        <div class="disclaimer-card__content">
+          <p>
+            This tool is for informational purposes only. Free food at events is strictly
+            limited to individuals who are officially inscribed to these events. Please
+            ensure that you meet the eligibility criteria before attending.
+          </p>
+          <p style="margin-top: 0.5rem; color: #475569">
+            By clicking Accept, you acknowledge that you have read and understood this disclaimer.
+          </p>
+        </div>
+        <div class="disclaimer-card__actions">
+          <button id="disclaimer-accept" type="button" class="disclaimer-accept-btn">Accept</button>
+        </div>
+      </div>
+    </div>
     <div class="app-shell">
       <div class="app-card">
         <header class="app-heading">
@@ -33,4 +54,3 @@
     <script type="module" src="/frontend/public/app.js"></script>
   </body>
   </html>
-

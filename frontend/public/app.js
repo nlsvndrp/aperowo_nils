@@ -502,4 +502,38 @@ const initialise = async () => {
   }
 };
 
-initialise();
+// Gate app behind disclaimer acceptance
+const DISCLAIMER_KEY = "aperoDisclaimerAccepted";
+
+const startWithDisclaimerGate = () => {
+  const modal = document.getElementById("disclaimer-modal");
+  const acceptBtn = document.getElementById("disclaimer-accept");
+
+  // If modal elements are missing, fallback to starting the app.
+  if (!modal || !acceptBtn) {
+    initialise();
+    return;
+  }
+
+  const accepted = localStorage.getItem(DISCLAIMER_KEY) === "1";
+  if (accepted) {
+    modal.setAttribute("hidden", "");
+    initialise();
+    return;
+  }
+
+  // Show modal and wait for acceptance
+  modal.removeAttribute("hidden");
+  acceptBtn.addEventListener(
+    "click",
+    () => {
+      localStorage.setItem(DISCLAIMER_KEY, "1");
+      modal.setAttribute("hidden", "");
+      initialise();
+    },
+    { once: true }
+  );
+};
+
+// Module script is loaded after DOM; safe to run directly
+startWithDisclaimerGate();
