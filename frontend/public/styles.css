@@ -21,6 +21,11 @@ body {
   overflow: hidden; /* prevent page scroll; panels handle their own */
 }
 
+/* When a modal is open on mobile, prevent background scroll */
+body.modal-open {
+  overflow: hidden !important;
+}
+
 /* Disclaimer modal overlay */
 .disclaimer-overlay[hidden] {
   display: none !important;
@@ -91,6 +96,77 @@ body {
 
 .disclaimer-accept-btn:active {
   transform: translateY(1px);
+}
+
+/* Mobile event details modal */
+.mobile-modal[hidden] {
+  display: none !important;
+}
+
+.mobile-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9998; /* below disclaimer (9999) */
+  display: grid;
+  grid-template-rows: 1fr;
+}
+
+.mobile-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(2px);
+}
+
+.mobile-modal__sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #ffffff;
+  border-top-left-radius: 18px;
+  border-top-right-radius: 18px;
+  box-shadow: 0 -12px 32px rgba(15, 23, 42, 0.25);
+  max-height: 75vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.mobile-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.mobile-modal__header h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.mobile-modal__close {
+  appearance: none;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  background: #ffffff;
+  color: #0f172a;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.mobile-modal__content {
+  padding: 0.75rem 1rem 1rem;
+  overflow: auto;
 }
 
 #root {
@@ -604,5 +680,10 @@ body {
 
   .calendar__event-chip {
     font-size: 0.8rem;        /* improve readability in tight space */
+  }
+
+  /* Hide the fixed event panel on ultra-small screens; use modal instead */
+  .event-panel {
+    display: none !important;
   }
 }

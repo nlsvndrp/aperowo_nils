@@ -27,6 +27,10 @@ const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 const calendarContainer = document.getElementById("calendar");
 const eventPanel = document.getElementById("event-panel");
+const mobileModal = document.getElementById("mobile-event-modal");
+const mobileModalTitle = mobileModal?.querySelector("#mobile-event-title");
+const mobileModalContent = mobileModal?.querySelector(".mobile-modal__content");
+const mobileModalClose = mobileModal?.querySelector(".mobile-modal__close");
 
 const state = {
   events: [],
@@ -491,6 +495,11 @@ const setActiveDay = (isoString) => {
   state.activeDay = isoString;
   renderCalendar();
   renderEventPanel();
+
+  // On ultra-small screens, show details in a modal bottom sheet.
+  if (isUltraSmallScreen()) {
+    openMobileEventModal(isoString);
+  }
 };
 
 const initialise = async () => {
@@ -523,6 +532,45 @@ const initialise = async () => {
     eventPanel.classList.add("event-panel--empty");
   }
 };
+
+// Utilities and handlers for ultra-small screen modal
+const isUltraSmallScreen = () => window.matchMedia("(max-width: 420px)").matches;
+
+const openMobileEventModal = (isoString) => {
+  if (!mobileModal || !mobileModalContent) return;
+  // Set title
+  if (mobileModalTitle) mobileModalTitle.textContent = formatDisplayDate(isoString);
+  // Reuse the same content rendered in the fixed panel
+  mobileModalContent.innerHTML = eventPanel.innerHTML;
+  mobileModal.removeAttribute("hidden");
+  document.body.classList.add("modal-open");
+};
+
+const closeMobileEventModal = () => {
+  if (!mobileModal) return;
+  mobileModal.setAttribute("hidden", "");
+  document.body.classList.remove("modal-open");
+};
+
+mobileModalClose?.addEventListener("click", closeMobileEventModal);
+mobileModal?.addEventListener("click", (e) => {
+  if (e.target && e.target.getAttribute("data-close") === "true") {
+    closeMobileEventModal();
+  }
+});
+
+window.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    closeMobileEventModal();
+  }
+});
+
+// Close modal if resizing to larger screen
+window.matchMedia("(max-width: 420px)").addEventListener("change", (ev) => {
+  if (!ev.matches) {
+    closeMobileEventModal();
+  }
+});
 
 // Gate app behind disclaimer acceptance (no persistence)
 let appStarted = false;
