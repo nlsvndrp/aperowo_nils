@@ -1,2 +1,10 @@
-requests
 beautifulsoup4
+dateparser
+extruct
+ftfy
+httpx
+lxml
+python-dateutil
+requests
+trafilatura
+Unidecode
