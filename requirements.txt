@@ -8,3 +8,8 @@ python-dateutil
 requests
 trafilatura
 Unidecode
+crawl4ai>=0.7.0
+playwright
+tldextract
+setuptools
+typeguard

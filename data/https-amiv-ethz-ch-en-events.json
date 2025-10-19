@@ -1,0 +1,13 @@
+{
+  "seed_url": "https://amiv.ethz.ch/en/events",
+  "domain": "amiv.ethz.ch",
+  "crawled_at": "2025-10-17T12:34:56.845150+00:00",
+  "pages_by_subdomain": {},
+  "stats": {
+    "pages_visited": 1,
+    "pages_stored": 0,
+    "max_depth": 0,
+    "max_pages": 30,
+    "duration_seconds": 6.95
+  }
+}

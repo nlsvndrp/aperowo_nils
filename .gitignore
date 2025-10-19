@@ -113,7 +113,7 @@ dmypy.json
 .pyre/
 
 # Keep backend ignored for GitHub Pages (static hosting)
-backend/
+# backend/
 
 # We need the data JSON files to be published so the frontend can fetch them.
 # Do NOT ignore the data directory or its JSON files.
